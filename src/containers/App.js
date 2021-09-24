@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
 import CardList from '../components/CardList';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
@@ -6,34 +7,52 @@ import Footer from '../components/Footer';
 import ErrorBoundry from '../components/ErrorBoundry'
 import './App.css';
 
+import { requestRobots, setSearchField } from '../actions'
 
-const App = () => {
+const mapStateToProps = state => {
+  return {
+    searchField: state.searchRobots.searchField,
+    robots: state.requestRobots.robots,
+    isPending: state.requestRobots.isPending,
+    error: state.requestRobots.error
+  }
+}
 
-  const [robots, setRobots] = useState([]);
-  const [searchField, setSearchField] = useState('');
-  const [count, setCount] = useState(0);
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+    onRequestRobots: () => dispatch(requestRobots())
+  } 
+}
+
+const App = (props) => {
+
+  // const [robots, setRobots] = useState([]);
+  // const [searchField, setSearchField] = useState('');
+  const { searchField, onSearchChange, robots, isPending, onRequestRobots } = props
   const filteredRobots = robots.filter(robot => {
     return robot.name.toLowerCase().includes(searchField.toLowerCase());
   })
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then(response => response.json())
-      .then(users => setRobots(users))
-      .catch(err => console.log(err)); 
-      console.log(count)   
-  }, [count])
+    onRequestRobots()
+    // fetch('https://jsonplaceholder.typicode.com/users')
+    //   .then(response => response.json())
+    //   .then(users => setRobots(users))
+    //   .catch(err => console.log(err)); 
+  }, [])
 
-  const onSearchChange = (event) => {
-    setSearchField(event.target.value)   
-  }
+  // const onSearchChange = (event) => {
+  //   setSearchField(event.target.value)   
+  // }
     
-  return !robots.length ?
+
+    return isPending ?
+  // return !robots.length ?
     <h1>Loading</h1> :
     (
       <div className='tc'>
         <h1 className="f1">RoboFriends</h1>
-        <button onClick={() =>setCount(count + 1)}>Click me!</button>
         <SearchBox searchChange={onSearchChange} />
         <Scroll>
           <ErrorBoundry>
@@ -44,4 +63,5 @@ const App = () => {
       </div>
     )    
 }
-export default App
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
